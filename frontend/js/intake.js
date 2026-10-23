@@ -1,7 +1,11 @@
 /**
- * MediScribe — Patient Intake & Gemma 4 AI Processing Engine (Phase 3)
+ * MediScribe — Patient Intake & Gemini 3.8 Flash AI Processing Engine (Phase 3)
  * Pure vanilla JavaScript with accessibility, keyboard navigation, and responsive validation.
  */
+
+const API_BASE = (window.location.protocol === 'file:' || (window.location.port && window.location.port !== '8000'))
+  ? `http://${window.location.hostname || '127.0.0.1'}:8000`
+  : '';
 
 document.addEventListener('DOMContentLoaded', () => {
   // DOM Elements
@@ -22,6 +26,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const aiBlockerStep = document.getElementById('ai-blocker-step');
   const aiEditBtn = document.getElementById('ai-edit-btn');
   const blockerEditBtn = document.getElementById('blocker-edit-btn');
+  const reportPrintBtn = document.getElementById('report-print-btn');
+  const reportDownloadBtn = document.getElementById('report-download-btn');
+  const clinicalDocumentInput = document.getElementById('clinical-document');
 
   // Step elements
   const steps = [
@@ -80,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
       backBtn.disabled = false;
       backBtn.style.visibility = 'visible';
       if (index === steps.length - 1) {
-        nextBtn.textContent = 'Process with Google Gemma 4';
+        nextBtn.textContent = 'Process with Google Gemini 3.8 Flash';
         populateReviewSummary();
       } else {
         nextBtn.textContent = 'Continue';
@@ -96,6 +103,37 @@ document.addEventListener('DOMContentLoaded', () => {
     intakeContainer.style.display = 'block';
     intakeContainer.classList.add('active');
     showStep(0);
+  }
+
+  if (clinicalDocumentInput) {
+    clinicalDocumentInput.addEventListener('change', async () => {
+      const file = clinicalDocumentInput.files?.[0];
+      if (!file) return;
+      const notesField = document.getElementById('additional-notes');
+      const validExtension = file.name.toLowerCase().endsWith('.txt');
+      if (!validExtension || file.size > 16 * 1024) {
+        clinicalDocumentInput.value = '';
+        showAlert('Choose one plain-text .txt file no larger than 16 KB.');
+        return;
+      }
+
+      try {
+        const documentText = await file.text();
+        if (documentText.includes('\u0000')) throw new Error('binary');
+        const addition = `${notesField.value.trim()}\n\nPatient-provided document text:\n${documentText}`.trim();
+        if (addition.length > 2000) {
+          throw new Error('length');
+        }
+        notesField.value = addition;
+        clinicalDocumentInput.value = '';
+        hideAlert();
+      } catch (error) {
+        clinicalDocumentInput.value = '';
+        showAlert(error.message === 'length'
+          ? 'The combined notes must be 2,000 characters or fewer.'
+          : 'This file could not be read as plain text. Choose a UTF-8 .txt file.');
+      }
+    });
   }
 
   if (startIntakeBtn) {
@@ -308,6 +346,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (reviewMeds) reviewMeds.textContent = meds || 'None reported';
     const reviewAllergies = document.getElementById('review-allergies');
     if (reviewAllergies) reviewAllergies.textContent = allergies || 'No known drug allergies';
+    const reviewNotes = document.getElementById('review-notes');
+    const notes = document.getElementById('additional-notes')?.value.trim();
+    if (reviewNotes) reviewNotes.textContent = notes || 'None provided';
   }
 
   // Next / Submit Button
@@ -365,7 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // Submit Intake Data & Process with Gemma 4 (Phase 3)
+  // Submit Intake Data & Process with Gemini 3.8 Flash (Phase 3)
   async function submitIntake() {
     hideAlert();
     const payload = getIntakeData();
@@ -377,11 +418,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       // Step 1: Validate payload
-      const valResponse = await fetch('/api/validate/', {
+      const csrfToken = await getCSRFToken();
+      const valResponse = await fetch(`${API_BASE}/api/validate/`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': csrfToken,
         },
         body: JSON.stringify(payload),
       });
@@ -391,12 +435,14 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(valResult.error || 'Intake validation failed. Please review your entries.');
       }
 
-      // Step 2: Process with Gemma 4 backend
-      const aiResponse = await fetch('/api/process/', {
+      // Step 2: Process with Gemini 3.8 Flash backend
+      const aiResponse = await fetch(`${API_BASE}/api/process/`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': csrfToken,
         },
         body: JSON.stringify(valResult.intake),
       });
@@ -406,12 +452,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (aiResult.status === 'success' && aiResult.data) {
         // Display AI Structured Output
-        renderAIResults(aiResult.data);
+        renderAIResults(aiResult.data, valResult.intake);
       } else if (aiResult.status === 'blocked') {
         // Display Blocker Notification (No API Key)
         renderAIBlocker(valResult.intake, aiResult.error);
       } else {
-        throw new Error(aiResult.error || 'Failed to process intake with Gemma 4.');
+        throw new Error(aiResult.error || 'Failed to process intake with Gemini 3.8 Flash.');
       }
     } catch (err) {
       loadingOverlay.classList.remove('active');
@@ -421,13 +467,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Render Gemma 4 Structured Results
-  function renderAIResults(data) {
+  async function getCSRFToken() {
+    const metaToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    if (metaToken && !metaToken.includes('{{')) return metaToken;
+    const response = await fetch(`${API_BASE}/csrf/`, { credentials: 'include' });
+    if (!response.ok) throw new Error('Unable to establish a secure connection. Please refresh and try again.');
+    const result = await response.json();
+    return result.csrfToken;
+  }
+
+  // Render Gemini 3.8 Flash Structured Results
+  function renderAIResults(data, intake = {}) {
     if (!aiResultsStep) return;
 
     // Chief Complaint
     const cc = document.getElementById('ai-chief-complaint');
     if (cc) cc.textContent = data.chief_complaint || 'Patient reported concern';
+
+    const generatedAt = document.getElementById('ai-generated-at');
+    if (generatedAt) {
+      const now = new Date();
+      generatedAt.dateTime = now.toISOString();
+      generatedAt.textContent = new Intl.DateTimeFormat(undefined, {
+        dateStyle: 'long',
+        timeStyle: 'short',
+      }).format(now);
+    }
+
+    const additionalNotes = document.getElementById('ai-additional-notes');
+    if (additionalNotes) additionalNotes.textContent = intake.additional_notes || 'None provided';
 
     // Symptoms
     const symContainer = document.getElementById('ai-structured-symptoms');
@@ -455,6 +523,37 @@ document.addEventListener('DOMContentLoaded', () => {
     // Timeline
     const timeline = document.getElementById('ai-timeline');
     if (timeline) timeline.textContent = data.timeline || 'Timeline not specified';
+
+    // Missing or uncertain details must remain explicit in the report.
+    const uncertainties = document.getElementById('ai-uncertainties');
+    const uncertaintyCard = document.getElementById('ai-uncertainty-card');
+    const uncertaintyItems = Array.isArray(data.missing_or_uncertain_information)
+      ? data.missing_or_uncertain_information
+      : [];
+    if (uncertainties && uncertaintyCard) {
+      uncertainties.replaceChildren();
+      uncertaintyItems.forEach(detail => {
+        const item = document.createElement('li');
+        item.className = 'followup-item';
+        item.textContent = String(detail);
+        uncertainties.appendChild(item);
+      });
+      uncertaintyCard.hidden = uncertaintyItems.length === 0;
+    }
+
+    const conflicts = document.getElementById('ai-conflicts');
+    const conflictsCard = document.getElementById('ai-conflicts-card');
+    const conflictItems = Array.isArray(data.conflicting_information) ? data.conflicting_information : [];
+    if (conflicts && conflictsCard) {
+      conflicts.replaceChildren();
+      conflictItems.forEach(detail => {
+        const item = document.createElement('li');
+        item.className = 'followup-item';
+        item.textContent = String(detail);
+        conflicts.appendChild(item);
+      });
+      conflictsCard.hidden = conflictItems.length === 0;
+    }
 
     // Medical History
     const conditionsEl = document.getElementById('ai-conditions');
@@ -486,7 +585,7 @@ document.addEventListener('DOMContentLoaded', () => {
       allergiesEl.textContent = Array.isArray(allergies) ? (allergies.join(', ') || 'No known drug allergies') : (allergies || 'No known drug allergies');
     }
 
-    // Follow-up Questions (Only displayed when Gemma 4 identified missing info)
+    // Follow-up Questions (Only displayed when Gemini 3.8 Flash identified missing info)
     const followupContainer = document.getElementById('ai-followup-container');
     const followupList = document.getElementById('ai-followup-list');
     const questions = data.follow_up_questions || [];
@@ -511,6 +610,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (safetyEl && data.clinical_safety_notice) {
       safetyEl.textContent = data.clinical_safety_notice;
     }
+
+    document.querySelectorAll('[data-report-editable="true"]').forEach(section => {
+      section.contentEditable = 'plaintext-only';
+      section.setAttribute('role', 'textbox');
+      section.setAttribute('aria-multiline', 'true');
+      section.setAttribute('aria-label', `Editable ${section.closest('.review-card')?.querySelector('.review-label')?.textContent || section.id.replace('ai-', '').replaceAll('-', ' ')}`);
+      section.addEventListener('input', () => {
+        section.dataset.patientCorrected = 'true';
+        const reportSection = section.closest('.review-card, .chief-complaint-box');
+        if (reportSection && !reportSection.querySelector('.patient-correction-marker')) {
+          const marker = document.createElement('span');
+          marker.className = 'patient-correction-marker';
+          marker.textContent = 'Patient corrected';
+          reportSection.appendChild(marker);
+        }
+      });
+    });
 
     aiResultsStep.classList.add('active');
     aiResultsStep.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -551,6 +667,44 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
   }
+
+  function reportText() {
+    const sections = [
+      ['Patient-Provided Notes or Test Results', 'ai-additional-notes'],
+      ['Chief Complaint', 'ai-chief-complaint'],
+      ['Symptoms and Details', 'ai-structured-symptoms'],
+      ['Onset and Timeline', 'ai-timeline'],
+      ['Chronic Conditions', 'ai-conditions'],
+      ['Current Medications', 'ai-medications'],
+      ['Allergies', 'ai-allergies'],
+      ['Conflicting Information', 'ai-conflicts'],
+      ['Missing or Uncertain Information', 'ai-uncertainties'],
+      ['Clarifying Questions for the Doctor', 'ai-followup-list'],
+    ];
+    const body = sections.map(([label, id]) => {
+      const element = document.getElementById(id);
+      const corrected = element?.dataset.patientCorrected === 'true' ? ' (Patient corrected)' : '';
+      return `${label}${corrected}\n${element?.innerText?.trim() || 'None reported'}`;
+    });
+    const generated = document.getElementById('ai-generated-at')?.innerText || 'Not available';
+    body.push(`Generated: ${generated}`);
+    body.push('Source: patient-entered answers and notes. Factual report fields are grounded in those entries; AI-suggested flags and questions need review.');
+    body.push(document.getElementById('ai-safety-notice')?.innerText || '');
+    return `MediScribe — Patient-Reviewed Intake Summary\n\n${body.join('\n\n')}`;
+  }
+
+  if (reportPrintBtn) reportPrintBtn.addEventListener('click', () => window.print());
+  if (reportDownloadBtn) reportDownloadBtn.addEventListener('click', () => {
+    const file = new Blob([reportText()], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(file);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'mediscribe-patient-reviewed-summary.txt';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  });
 
   // Edit / Return to Intake buttons
   if (aiEditBtn) {

@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="MediScribe — Clinical patient intake application organizing symptoms and medical history for doctors using Google Gemini 3.8 Flash AI.">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <title>MediScribe — Patient Intake</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <!-- Global Application Header -->
+  <header class="app-header" role="banner">
+    <div class="header-container">
+      <a href="/" class="logo-group" aria-label="MediScribe Home">
+        <span class="logo-icon" aria-hidden="true">
+          <svg viewBox="0 0 40 40" focusable="false"><rect x="2" y="2" width="36" height="36" rx="12" fill="currentColor"/><path d="M20 10v20M10 20h20" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/><path d="M7 22h7l3-6 5 11 3-5h8" fill="none" stroke="#8B7CF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="logo-text">MediScribe</span>
+      </a>
+      <div class="model-pill" role="status" aria-label="AI Model Information">
+        <span class="model-dot" aria-hidden="true"></span>
+        <span>Google Gemini 3.8 Flash</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Wrapper -->
+  <main class="main-wrapper" id="main-content" role="main">
+    <!-- Landing Page Section -->
+    <section id="landing-section" class="landing-hero" aria-labelledby="hero-title">
+      <div class="hero-layout">
+        <div class="hero-copy">
+          <span class="landing-badge"><span class="badge-dot" aria-hidden="true"></span> A clearer visit starts here</span>
+          <h1 id="hero-title">Your health story, clearly organised.</h1>
+          <p>MediScribe helps turn your symptoms, medications, and health history into a clear summary for your doctor to review.</p>
+
+          <div class="hero-actions">
+            <button type="button" id="start-intake-btn" class="btn btn-primary" aria-label="Start Patient Intake Wizard">
+              Start patient intake <span aria-hidden="true">&rarr;</span>
+            </button>
+            <button type="button" id="try-demo-btn" class="btn btn-secondary" aria-label="Try Intake with Sample Clinical Data">
+              Try Demo · sample intake
+            </button>
+          </div>
+          <div class="hero-trust"><span class="trust-check" aria-hidden="true">✓</span> No account needed · review before sharing</div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="hero-art-orbit orbit-one"></div><div class="hero-art-orbit orbit-two"></div>
+          <svg class="hero-illustration" viewBox="0 0 440 360" focusable="false">
+            <path d="M69 289c14-64 45-103 99-116 51-12 102-8 151 18 29 16 48 48 56 98H69Z" fill="#DDF8EF"/>
+            <circle cx="328" cy="77" r="40" fill="#E9E5FF"/><circle cx="93" cy="92" r="13" fill="#F4B860"/>
+            <rect x="124" y="38" width="205" height="276" rx="24" fill="#fff" stroke="#E1E8F2" stroke-width="2"/>
+            <rect x="150" y="67" width="153" height="31" rx="10" fill="#F0FBF7"/>
+            <rect x="162" y="77" width="10" height="10" rx="3" fill="#14B8A6"/><path d="M181 82h103" stroke="#9AA8B8" stroke-width="5" stroke-linecap="round"/>
+            <path d="M151 123h130" stroke="#E9EEF4" stroke-width="8" stroke-linecap="round"/><path d="M151 143h101" stroke="#E9EEF4" stroke-width="8" stroke-linecap="round"/>
+            <rect x="151" y="170" width="151" height="62" rx="13" fill="#F7F8FC"/><path d="M166 202h20l10-14 14 26 12-18h60" fill="none" stroke="#14B8A6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="151" y="247" width="68" height="42" rx="11" fill="#E7FAF4"/><path d="M166 268h37" stroke="#14B8A6" stroke-width="6" stroke-linecap="round"/>
+            <rect x="229" y="247" width="73" height="42" rx="11" fill="#F2F0FF"/><circle cx="246" cy="268" r="7" fill="#8B7CF6"/><path d="M261 268h26" stroke="#B8B0F6" stroke-width="6" stroke-linecap="round"/>
+            <circle cx="348" cy="233" r="34" fill="#14B8A6"/><path d="M348 215v36M330 233h36" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
+          </svg>
+          <div class="hero-art-caption"><span class="caption-icon" aria-hidden="true">✓</span><span><strong>Ready for your visit</strong><small>Organised around what matters</small></span></div>
+        </div>
+      </div>
+
+      <!-- Three-Step Visual Guide -->
+      <div class="how-it-works-grid" aria-label="How MediScribe Works">
+        <div class="step-card">
+          <div class="step-number step-mint" aria-hidden="true">01</div>
+          <h3>Share Information</h3>
+          <p>Answer intuitive questions and describe what you are experiencing in your own words.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number step-lavender" aria-hidden="true">02</div>
+          <h3>AI Organises It</h3>
+          <p>Gemini 3.8 Flash helps flag uncertain details and prepare follow-up questions for review.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number step-amber" aria-hidden="true">03</div>
+          <h3>Review Your Report</h3>
+          <p>Review, correct, and download a doctor-ready clinical report before your appointment.</p>
+        </div>
+      </div>
+
+      <!-- Medical Safety & Privacy Notice -->
+      <div class="safety-notice" role="note" aria-label="Medical Documentation Disclaimer">
+        <span class="safety-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 3 20 6v5c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V6l8-3Z"/><path d="m8.5 12 2.3 2.3 4.8-5"/></svg></span>
+        <div class="safety-text">
+          <h4>Safety First</h4>
+          <p>MediScribe supports medical documentation, not diagnosis. It does not replace professional medical advice, and all summaries should be reviewed by a qualified healthcare professional.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Patient Intake Wizard Container -->
+    <section id="intake-container" class="intake-container" aria-label="Patient Intake Form" style="display: none;">
+      <!-- Wizard Progress Header -->
+      <div class="intake-progress-header">
+        <div class="progress-info">
+          <span id="progress-label" class="progress-label">Step 1: Primary Symptoms</span>
+          <span id="progress-count" class="progress-count">Step 1 of 4</span>
+        </div>
+        <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="25" aria-label="Intake completion progress">
+          <div id="progress-fill" class="progress-fill" style="width: 25%;"></div>
+        </div>
+      </div>
+
+      <form id="intake-form" onsubmit="return false;" novalidate>
+        <!-- Accessible Error & Alert Notification Banner -->
+        <div style="padding: 0 32px; padding-top: 20px;">
+          <div id="intake-alert" class="alert alert-error" role="alert" aria-live="polite">
+            <span class="alert-icon" aria-hidden="true">⚠️</span>
+            <span id="alert-message">Please correct the highlighted field to continue.</span>
+          </div>
+        </div>
+
+        <!-- Step 1: Chief Complaints & Symptoms -->
+        <div id="step-1" class="wizard-step active" aria-labelledby="step-1-title">
+          <div class="step-heading">
+            <h2 id="step-1-title">What symptoms are you experiencing?</h2>
+            <p>Select all symptoms that apply to your current visit. You can add more details on the next screen.</p>
+          </div>
+
+          <div class="choice-grid" role="group" aria-label="Primary symptom options">
+            <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Persistent Cough">
+              <input type="checkbox" name="symptoms" value="Persistent Cough" id="sym-cough">
+              <div class="choice-indicator" aria-hidden="true">
+                <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+              </div>
+              <div class="choice-content">
+                <span class="choice-title">Persistent Cough</span>
+                <span class="choice-desc">Dry, productive, or wheezing</span>
+              </div>
+            </div>
+
+            <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Fever or Chills">
+              <input type="checkbox" name="symptoms" value="Fever or Chills" id="sym-fever">
+              <div class="choice-indicator" aria-hidden="true">
+                <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+              </div>
+              <div class="choice-content">
+                <span class="choice-title">Fever or Chills</span>
+                <span class="choice-desc">Elevated body temperature, sweating</span>
+              </div>
+            </div>
+
+            <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Shortness of Breath">
+              <input type="checkbox" name="symptoms" value="Shortness of Breath" id="sym-sob">
+              <div class="choice-indicator" aria-hidden="true">
+                <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+              </div>
+              <div class="choice-content">
+                <span class="choice-title">Shortness of Breath</span>
+                <span class="choice-desc">Difficulty breathing at rest or effort</span>
+              </div>
+            </div>
+
+            <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Headache or Migraine">
+              <input type="checkbox" name="symptoms" value="Headache or Migraine" id="sym-headache">
+              <div class="choice-indicator" aria-hidden="true">
+                <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+              </div>
+              <div class="choice-content">
+                <span class="choice-title">Headache</span>
+                <span class="choice-desc">Dull pressure, throbbing, or migraine</span>
+              </div>
+            </div>
+
+            <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Chest Discomfort">
+              <input type="checkbox" name="symptoms" value="Chest Discomfort" id="sym-chest">
+              <div class="choice-indicator" aria-hidden="true">
+                <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+              </div>
+              <div class="choice-content">
+                <span class="choice-title">Chest Discomfort</span>
+                <span class="choice-desc">Tightness, ache, or sharp pain</span>
+              </div>
+            </div>
+
+            <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Fatigue or Weakness">
+              <input type="checkbox" name="symptoms" value="Fatigue / Weakness" id="sym-fatigue">
+              <div class="choice-indicator" aria-hidden="true">
+                <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+              </div>
+              <div class="choice-content">
+                <span class="choice-title">Fatigue / Weakness</span>
+                <span class="choice-desc">Unusual exhaustion or low energy</span>
+              </div>
+            </div>
+
+            <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Abdominal Pain">
+              <input type="checkbox" name="symptoms" value="Abdominal Pain" id="sym-stomach">
+              <div class="choice-indicator" aria-hidden="true">
+                <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+              </div>
+              <div class="choice-content">
+                <span class="choice-title">Abdominal Pain</span>
+                <span class="choice-desc">Cramping, sharp pain, or bloating</span>
+              </div>
+            </div>
+
+            <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Joint or Muscle Pain">
+              <input type="checkbox" name="symptoms" value="Joint or Muscle Pain" id="sym-joints">
+              <div class="choice-indicator" aria-hidden="true">
+                <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+              </div>
+              <div class="choice-content">
+                <span class="choice-title">Joint or Muscle Pain</span>
+                <span class="choice-desc">Stiffness, soreness, or swelling</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="other-symptom" class="form-label">Other Symptom (Optional)</label>
+            <input type="text" id="other-symptom" name="other_symptom" class="form-input" placeholder="e.g. Skin rash, earache, dizziness" maxlength="150">
+            <p class="form-hint">Type any specific symptom not covered above.</p>
+          </div>
+        </div>
+
+        <!-- Step 2: Duration, Severity & Description -->
+        <div id="step-2" class="wizard-step" aria-labelledby="step-2-title">
+          <div class="step-heading">
+            <h2 id="step-2-title">Duration, Severity & Details</h2>
+            <p>Tell us how long you have felt this way and describe the symptoms in your own words.</p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">How long have these symptoms lasted?</label>
+            <div id="duration-grid" class="choice-grid" role="radiogroup" aria-label="Symptom Duration Options">
+              <div class="choice-card" tabindex="0" role="radio" aria-checked="false" aria-label="Within 24 hours">
+                <input type="radio" name="duration" value="under_24_hours" id="dur-today">
+                <div class="choice-indicator radio" aria-hidden="true">
+                  <svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="3.5"/></svg>
+                </div>
+                <div class="choice-content">
+                  <span class="choice-title">Under 24 Hours</span>
+                  <span class="choice-desc">Started today or last night</span>
+                </div>
+              </div>
+
+              <div class="choice-card" tabindex="0" role="radio" aria-checked="false" aria-label="2 to 3 days">
+                <input type="radio" name="duration" value="2-3_days" id="dur-days">
+                <div class="choice-indicator radio" aria-hidden="true">
+                  <svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="3.5"/></svg>
+                </div>
+                <div class="choice-content">
+                  <span class="choice-title">2 to 3 Days</span>
+                  <span class="choice-desc">Developing over a few days</span>
+                </div>
+              </div>
+
+              <div class="choice-card" tabindex="0" role="radio" aria-checked="false" aria-label="1 to 2 weeks">
+                <input type="radio" name="duration" value="1-2_weeks" id="dur-weeks">
+                <div class="choice-indicator radio" aria-hidden="true">
+                  <svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="3.5"/></svg>
+                </div>
+                <div class="choice-content">
+                  <span class="choice-title">1 to 2 Weeks</span>
+                  <span class="choice-desc">Persistent over past weeks</span>
+                </div>
+              </div>
+
+              <div class="choice-card" tabindex="0" role="radio" aria-checked="false" aria-label="Over a month">
+                <input type="radio" name="duration" value="over_a_month" id="dur-month">
+                <div class="choice-indicator radio" aria-hidden="true">
+                  <svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="3.5"/></svg>
+                </div>
+                <div class="choice-content">
+                  <span class="choice-title">Over a Month</span>
+                  <span class="choice-desc">Chronic or recurring concern</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" id="severity-label">Symptom Severity / Discomfort (1 = Mild, 10 = Severe)</label>
+            <div class="severity-scale" role="group" aria-labelledby="severity-label">
+              <button type="button" class="severity-btn" data-val="1" aria-label="Severity 1 Mild">1</button>
+              <button type="button" class="severity-btn" data-val="2" aria-label="Severity 2">2</button>
+              <button type="button" class="severity-btn" data-val="3" aria-label="Severity 3">3</button>
+              <button type="button" class="severity-btn" data-val="4" aria-label="Severity 4">4</button>
+              <button type="button" class="severity-btn selected" data-val="5" aria-label="Severity 5 Moderate">5</button>
+              <button type="button" class="severity-btn" data-val="6" aria-label="Severity 6">6</button>
+              <button type="button" class="severity-btn" data-val="7" aria-label="Severity 7">7</button>
+              <button type="button" class="severity-btn" data-val="8" aria-label="Severity 8">8</button>
+              <button type="button" class="severity-btn" data-val="9" aria-label="Severity 9">9</button>
+              <button type="button" class="severity-btn" data-val="10" aria-label="Severity 10 Severe">10</button>
+            </div>
+            <input type="hidden" id="severity-input" name="severity" value="5">
+          </div>
+
+          <div class="form-group">
+            <label for="symptom-description" class="form-label">Describe your symptoms and concerns in detail</label>
+            <textarea id="symptom-description" name="description" class="form-textarea" placeholder="Describe when it happens, what makes it better or worse, and how it impacts your daily activities..." rows="5" required></textarea>
+            <p class="form-hint">Providing specific details helps Gemini 3.8 Flash organise an accurate summary for your doctor.</p>
+          </div>
+        </div>
+
+        <!-- Step 3: Medical Background, Meds & Allergies -->
+        <div id="step-3" class="wizard-step" aria-labelledby="step-3-title">
+          <div class="step-heading">
+            <h2 id="step-3-title">Medical History, Medications & Allergies</h2>
+            <p>This context helps identify relevant interactions and informs your doctor's review.</p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Existing Chronic Conditions (if any)</label>
+            <div class="choice-grid" role="group" aria-label="Existing conditions">
+              <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Asthma or Respiratory">
+                <input type="checkbox" name="conditions" value="Asthma / Respiratory" id="cond-asthma">
+                <div class="choice-indicator" aria-hidden="true">
+                  <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+                </div>
+                <div class="choice-content">
+                  <span class="choice-title">Asthma / Respiratory</span>
+                </div>
+              </div>
+
+              <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Hypertension">
+                <input type="checkbox" name="conditions" value="Hypertension (High BP)" id="cond-bp">
+                <div class="choice-indicator" aria-hidden="true">
+                  <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+                </div>
+                <div class="choice-content">
+                  <span class="choice-title">High Blood Pressure</span>
+                </div>
+              </div>
+
+              <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Diabetes">
+                <input type="checkbox" name="conditions" value="Diabetes" id="cond-diabetes">
+                <div class="choice-indicator" aria-hidden="true">
+                  <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+                </div>
+                <div class="choice-content">
+                  <span class="choice-title">Diabetes (Type 1 / 2)</span>
+                </div>
+              </div>
+
+              <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Heart Disease">
+                <input type="checkbox" name="conditions" value="Heart Disease" id="cond-heart">
+                <div class="choice-indicator" aria-hidden="true">
+                  <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+                </div>
+                <div class="choice-content">
+                  <span class="choice-title">Cardiovascular Condition</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="current-medications" class="form-label">Current Medications & Dosages</label>
+            <input type="text" id="current-medications" name="medications" class="form-input" placeholder="e.g. Lisinopril 10mg daily, Metformin 500mg, Vitamins" maxlength="200">
+            <p class="form-hint">List prescription drugs, over-the-counter remedies, or supplements.</p>
+          </div>
+
+          <div class="form-group">
+            <label for="known-allergies" class="form-label">Known Allergies (Medications, Foods, Environment)</label>
+            <input type="text" id="known-allergies" name="allergies" class="form-input" placeholder="e.g. Penicillin (anaphylaxis), Sulfa drugs, Latex, None" maxlength="200">
+            <p class="form-hint">Write 'None' if you do not have any known allergies.</p>
+          </div>
+
+          <div class="form-group">
+            <label for="additional-notes" class="form-label">Optional Lab Results or Medical Notes</label>
+            <textarea id="additional-notes" name="additional_notes" class="form-textarea" maxlength="2000" placeholder="Paste any relevant lab values, past surgical history, or recent clinic notes here..." rows="3"></textarea>
+            <p class="form-hint">Up to 2,000 characters. These notes are treated as information you provided.</p>
+            <label for="clinical-document" class="form-label">Add a plain-text document (optional)</label>
+            <input type="file" id="clinical-document" accept=".txt,text/plain" aria-describedby="clinical-document-hint">
+            <p id="clinical-document-hint" class="form-hint">One .txt file, up to 16 KB. It is read in this browser; its text is added to your notes and sent with your intake. The file itself is not stored.</p>
+          </div>
+        </div>
+
+        <!-- Step 4: Review Summary Before Validation -->
+        <div id="step-4" class="wizard-step" aria-labelledby="step-4-title">
+          <div class="step-heading">
+            <h2 id="step-4-title">Review Your Intake Summary</h2>
+            <p>Please confirm the information below before finalizing your intake submission.</p>
+          </div>
+
+          <div class="review-card" aria-label="Review of Entered Intake Information">
+            <div class="review-section">
+              <div class="review-label">Reported Symptoms</div>
+              <div id="review-symptoms" class="review-tag-list">Loading...</div>
+            </div>
+
+            <div class="review-section">
+              <div class="review-label">Duration & Severity</div>
+              <div class="review-value">
+                <span id="review-duration">Loading...</span> &bull; Severity: <span id="review-severity">5 / 10</span>
+              </div>
+            </div>
+
+            <div class="review-section">
+              <div class="review-label">Detailed Description</div>
+              <div id="review-description" class="review-value">Loading...</div>
+            </div>
+
+            <div class="review-section">
+              <div class="review-label">Medical Conditions</div>
+              <div id="review-conditions" class="review-tag-list">None reported</div>
+            </div>
+
+            <div class="review-section">
+              <div class="review-label">Medications & Allergies</div>
+              <div class="review-value">
+                <strong>Medications:</strong> <span id="review-meds">None</span><br>
+                <strong>Allergies:</strong> <span id="review-allergies">None</span>
+              </div>
+            </div>
+            <div class="review-section">
+              <div class="review-label">Patient-Provided Notes or Test Results</div>
+              <div id="review-notes" class="review-value">None provided</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading State Screen -->
+        <div id="loading-overlay" class="loading-overlay" aria-live="assertive" role="status">
+          <div class="spinner" aria-hidden="true"></div>
+          <h3 id="loading-title">Organising your health story with Google Gemini 3.8 Flash...</h3>
+          <p id="loading-desc">Extracting clinical details, structuring timeline, and checking for missing information with Gemini 3.8 Flash.</p>
+        </div>
+
+        <!-- Phase 3: AI Results Screen (Google Gemini 3.8 Flash Output) -->
+        <div id="ai-results-step" class="wizard-step" aria-labelledby="ai-results-title">
+          <div class="step-heading">
+            <div class="ai-header-badge">
+              <span aria-hidden="true">🤖</span>
+              <span>Google Gemini 3.8 Flash AI &bull; Clinical Extraction</span>
+            </div>
+            <h2 id="ai-results-title">Structured Medical Intake Summary</h2>
+            <p>Patient-provided information is arranged for your doctor to review. AI-suggested questions and flags need confirmation.</p>
+            <p class="report-meta"><strong>Generated:</strong> <time id="ai-generated-at"></time></p>
+            <p class="report-meta">Source: patient-entered answers and notes. Factual report fields are grounded in your entries; AI-suggested flags and questions need review. Edited sections are marked “Patient corrected.”</p>
+          </div>
+
+          <div class="review-card">
+            <div class="review-label">Patient-Provided Notes or Test Results</div>
+            <p id="ai-additional-notes" class="review-value" data-report-editable="true">None provided</p>
+          </div>
+
+          <!-- Chief Complaint -->
+          <div class="chief-complaint-box">
+            <h4>Chief Complaint</h4>
+            <p id="ai-chief-complaint" data-report-editable="true">Loading chief complaint...</p>
+          </div>
+
+          <!-- Structured Symptoms -->
+          <div class="review-card">
+            <div class="review-label">Structured Symptoms &amp; Details</div>
+            <div id="ai-structured-symptoms" class="symptom-structured-list" data-report-editable="true">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Clinical Timeline -->
+          <div class="review-card">
+            <div class="review-label">Onset &amp; Timeline</div>
+            <p id="ai-timeline" class="review-value" data-report-editable="true">Loading timeline...</p>
+          </div>
+
+          <!-- Medical History & Background -->
+          <div class="review-card">
+            <div class="review-label">Clinical Background &amp; Allergies</div>
+            <div class="review-section">
+              <div class="review-label">Chronic Conditions</div>
+              <div id="ai-conditions" class="review-tag-list" data-report-editable="true">None reported</div>
+            </div>
+            <div class="review-section">
+              <div class="review-label">Current Medications</div>
+              <p id="ai-medications" class="review-value" data-report-editable="true">None reported</p>
+            </div>
+            <div class="review-section">
+              <div class="review-label">Allergies</div>
+              <p id="ai-allergies" class="review-value" data-report-editable="true">No known drug allergies</p>
+            </div>
+          </div>
+
+          <div class="review-card" id="ai-uncertainty-card" hidden>
+            <div class="review-label">Missing details &amp; AI suggestions to verify</div>
+            <ul id="ai-uncertainties" class="followup-list" data-report-editable="true"></ul>
+          </div>
+
+          <div class="review-card" id="ai-conflicts-card" hidden>
+            <div class="review-label">Potential conflicts flagged for review</div>
+            <ul id="ai-conflicts" class="followup-list" data-report-editable="true"></ul>
+          </div>
+
+          <!-- Targeted Follow-up Questions (Only when information is missing) -->
+          <div id="ai-followup-container" class="followup-card" style="display: none;">
+            <div class="followup-card-header">
+              <span class="followup-icon" aria-hidden="true">❓</span>
+              <span class="followup-title">Recommended Clarifying Questions for Your Consultation</span>
+            </div>
+            <p style="font-size: 13px; color: var(--secondary); margin-bottom: 12px;">
+              Gemini 3.8 Flash identified areas where additional clinical detail will assist your healthcare provider:
+            </p>
+            <ul id="ai-followup-list" class="followup-list" data-report-editable="true">
+              <!-- Populated dynamically -->
+            </ul>
+          </div>
+
+          <!-- Clinical Safety Notice -->
+          <div class="safety-notice" style="margin-top: 24px;">
+            <span class="safety-icon" aria-hidden="true">🛡️</span>
+            <div class="safety-text">
+              <h4>Clinical Safety Disclaimer</h4>
+              <p id="ai-safety-notice">MediScribe supports medical documentation, not diagnosis. It does not replace professional medical advice, and all summaries should be reviewed by a qualified healthcare professional.</p>
+            </div>
+          </div>
+
+          <p class="report-edit-hint">Review this summary carefully. You can edit report sections; your changes stay in this browser session.</p>
+          <div class="report-actions" aria-label="Report actions">
+            <button type="button" id="report-print-btn" class="btn btn-secondary">Print report</button>
+            <button type="button" id="report-download-btn" class="btn btn-primary">Download report</button>
+          </div>
+
+          <div style="text-align: center; margin-top: 24px;">
+            <button type="button" id="ai-edit-btn" class="btn btn-secondary">
+              &larr; Revise Intake Responses
+            </button>
+          </div>
+        </div>
+
+        <!-- Phase 3: AI Blocker Screen (When GEMINI_API_KEY is not set) -->
+        <div id="ai-blocker-step" class="wizard-step" aria-labelledby="blocker-title">
+          <div class="blocker-card">
+            <div class="blocker-header">
+              <span class="blocker-icon" aria-hidden="true">⚠️</span>
+              <h3 id="blocker-title" class="blocker-title">API Key Required for Live AI Processing</h3>
+            </div>
+            <p class="blocker-body">
+              Your patient intake data has been <strong>successfully validated and recorded locally</strong>.
+              However, real-time clinical extraction using <strong>Google Gemini 3.8 Flash</strong> requires an active Gemini API key.
+            </p>
+            <div class="blocker-hint">
+              Configure <strong>GEMINI_API_KEY</strong> in your <code>backend/.env</code> or environment variables to enable live Gemini 3.8 Flash processing.
+            </div>
+          </div>
+
+          <!-- Validated Local Data Summary -->
+          <div class="review-card">
+            <div class="review-label">Validated Patient Intake Record</div>
+            <div class="review-section">
+              <div class="review-label">Reported Symptoms</div>
+              <div id="blocker-symptoms" class="review-tag-list"></div>
+            </div>
+            <div class="review-section">
+              <div class="review-label">Duration &amp; Severity</div>
+              <p id="blocker-duration-severity" class="review-value"></p>
+            </div>
+            <div class="review-section">
+              <div class="review-label">Symptom Description</div>
+              <p id="blocker-description" class="review-value"></p>
+            </div>
+          </div>
+
+          <div style="text-align: center; margin-top: 20px;">
+            <button type="button" id="blocker-edit-btn" class="btn btn-secondary">
+              &larr; Edit Intake Responses
+            </button>
+          </div>
+        </div>
+
+        <!-- Wizard Navigation Footer -->
+        <div id="wizard-footer" class="wizard-footer">
+          <button type="button" id="wizard-back-btn" class="btn btn-secondary" style="visibility: hidden;">
+            &larr; Back
+          </button>
+          <button type="button" id="wizard-next-btn" class="btn btn-primary">
+            Continue &rarr;
+          </button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <!-- Application Footer -->
+  <footer class="app-footer" role="contentinfo">
+    <p>&copy; 2026 MediScribe. Designed for clinical documentation support, not diagnosis. Always consult a healthcare professional.</p>
+  </footer>
+
+  <script src="/static/js/intake.js"></script>
+</body>
+</html>
