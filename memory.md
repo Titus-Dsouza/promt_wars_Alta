@@ -1,13 +1,13 @@
 # MediScribe — Memory & Comprehensive Project Audit
 
 ## 1. Project Overview & Repository Configuration
-MediScribe is a clinical patient intake application that collects patient symptoms, duration, medical history, allergies, and concerns, and prepares structured, doctor-ready summaries using Google Gemma 4 AI via the Gemini API (`google-genai` SDK).
+MediScribe is a clinical patient intake application that collects patient symptoms, duration, medical history, allergies, and concerns, and prepares structured, doctor-ready summaries using Google Gemini Flash.
 
 - **Repository:** https://github.com/Titus-Dsouza/promt_wars_Alta
 - **Branch:** `main`
 - **Remote:** `origin -> https://github.com/Titus-Dsouza/promt_wars_Alta.git`
 - **Tech Stack:** Python 3.14.7, Django 6.1.2, HTML5 / CSS3 / Vanilla JavaScript, Google GenAI SDK (`google-genai` v2.33.0)
-- **Configured AI Model:** Google Gemma 4 (`gemma-4-31b-it`)
+- **Planned AI Model:** Google Gemini Flash (replacing earlier Gemma 4 references; exact runtime model ID requires verification)
 
 ---
 
@@ -19,7 +19,7 @@ In accordance with user instructions, the four original foundation documents wer
 - `Architecture.md`: Audited against `17a9486:Architecture.md`; verified 100% byte-for-byte identical.
 - `Design.md`: Audited against `17a9486:Design.md`; verified 100% byte-for-byte identical.
 
-**Permanent Rule Enforced:** `README.md`, `phase.md`, `Architecture.md`, and `Design.md` are treated as strictly immutable requirements specifications. No automated or manual edits, reformatting, or checkmarking will be performed on them. All project progress, audit findings, test logs, and next steps are recorded exclusively in `memory.md`.
+**Permanent Rule Enforced:** `README.md`, `phase.md`, `Architecture.md`, and `Design.md` are treated as strictly immutable requirements specifications. No automated or manual edits, reformatting, or modifications are allowed for those files.
 
 Verification: `git diff 17a9486 -- README.md phase.md Architecture.md Design.md` produces 0 diff lines.
 
@@ -29,11 +29,11 @@ Verification: `git diff 17a9486 -- README.md phase.md Architecture.md Design.md`
 The user reported being unable to see the frontend. A systematic inspection was conducted to identify the exact root causes:
 
 ### Root Cause Analysis:
-1. **Background Process Lifecycle:** The Django development server process had terminated after running verification curl commands in the previous session. Because no persistent process was actively listening on port 8000, attempting to open `http://127.0.0.1:8000/` in a web browser resulted in a connection refused (`ERR_CONNECTION_REFUSED`) error.
-2. **Host Header Filtering (`ALLOWED_HOSTS`):** In `mediscribe/settings.py`, `ALLOWED_HOSTS` was initially constrained to `['localhost', '127.0.0.1', '[::1]']`. Browsing via `0.0.0.0`, local network IP addresses, or certain loopback host header permutations resulted in a `400 Bad Request (DisallowedHost)` error.
+1. **Background Process Lifecycle:** The Django development server process had terminated after running verification curl commands in the previous session. Because no persistent process was active, the app was not reachable through the expected local port.
+2. **Host Header Filtering (`ALLOWED_HOSTS`):** In `mediscribe/settings.py`, `ALLOWED_HOSTS` was initially constrained to `['localhost', '127.0.0.1', '[::1]']`. Browsing via `0.0.0.0`, local network addresses, or containers would fail unless the host list was widened.
 
 ### Fixes Applied:
-- Updated `mediscribe/settings.py` so that when `DEBUG = True`, `ALLOWED_HOSTS = ['*']` is set, allowing connections from localhost, 127.0.0.1, 0.0.0.0, and local development hostnames without HTTP 400 errors.
+- Updated `mediscribe/settings.py` so that when `DEBUG = True`, `ALLOWED_HOSTS = ['*']` is set, allowing connections from localhost, 127.0.0.1, 0.0.0.0, and local development hostnames without HTTP host blocking.
 - Verified that static assets load with correct MIME types:
   - `GET /` &rarr; HTTP 200 OK (text/html)
   - `GET /static/css/styles.css` &rarr; HTTP 200 OK (`Content-Type: text/css`, 15.8 KB)
@@ -49,7 +49,7 @@ To view the frontend in any browser:
 Then navigate to:
 **`http://127.0.0.1:8000/`** (or **`http://localhost:8000/`**)
 
-*Limitation Disclosure:* Automated headless checks, HTTP status codes, DOM elements, and syntax verification passed with 100% accuracy. However, visual ocular rendering in a physical browser could not be directly captured within this CLI environment.
+*Limitation Disclosure:* Automated headless checks, HTTP status codes, DOM elements, and syntax verification passed with 100% accuracy. However, visual ocular rendering in a physical browser could not be confirmed within this session.
 
 ---
 
@@ -64,7 +64,7 @@ Then navigate to:
 | **Medical Background** | `phase.md` (Phase 2) | Chronic conditions, current medications, known allergies, clinical notes | **Complete** |
 | **Step Review** | `phase.md` (Phase 2) | Dynamic client review card summarizing all selections before submission | **Complete** |
 | **Validation Engine** | `phase.md` (Phase 2) | Client step validation + `POST /api/validate/` endpoint | **Complete** |
-| **AI Integration** | `phase.md` (Phase 3) | Official `google-genai` SDK calling `gemma-4-31b-it`; validates against Gemini substitution | **Complete** |
+| **AI Integration** | `phase.md` (Phase 3) | Planned Gemini Flash configuration; earlier Gemma 4-specific references are being replaced, but runtime verification is pending | **Planned** |
 | **Clinical Safety Rules** | `phase.md`, `README.md` | Prompt forbids diagnosis, prescriptions, and hallucinated facts; distinguishes reported facts | **Complete** |
 | **Clarifying Questions** | `phase.md` (Phase 3) | Generates 1-3 follow-up questions only when important clinical details are missing | **Complete** |
 | **AI Error Handling** | `phase.md` (Phase 3) | Handles missing API key honestly, catches rate limits (429), auth (401/403), malformed output | **Complete** |
@@ -76,12 +76,12 @@ Then navigate to:
 ---
 
 ## 5. AI Integration Status
-- **Target Model:** Google Gemma 4 (`gemma-4-31b-it`).
+- **Planned Target Model:** Google Gemini Flash.
 - **Provider:** Gemini API via the official `google-genai` SDK (`from google import genai`).
-- **Model ID Validation:** Strict validation in `intake/gemma_service.py` (`validate_gemma_model`) prevents substituting Gemini (`gemini-1.5`, `gemini-2.0`, `gemini-2.5`).
+- **Model ID Validation:** Prior Gemma 4 validation logic should be reviewed and updated to match the intended Gemini Flash model identifiers before deployment.
 - **Live Execution Status:**
-  - With `GEMINI_API_KEY` configured in `.env`, the backend makes genuine calls to `gemma-4-31b-it` via `client.models.generate_content`.
-  - When running without a key, the backend reports an honest blocker (`status: "blocked"`, `error_type: "missing_api_key"`) and the UI clearly informs the user that an API key is required, preserving user input without faking AI data.
+  - With `GEMINI_API_KEY` configured in `.env`, the backend can be configured to call a Gemini Flash model through `client.models.generate_content`.
+  - This switch has not yet been verified in the current repository state, so runtime success should not be claimed without testing.
 
 ---
 
@@ -99,8 +99,8 @@ Then navigate to:
 - **Verified Completed Phases:**
   - **Phase 1 (Setup):** Verified complete.
   - **Phase 2 (Build the UI):** Verified complete.
-  - **Phase 3 (Gemma 4 Integration):** Verified complete.
-- **Current Standing:** Ready to proceed to **Phase 4: Medical Report**.
+  - **Phase 3 (Gemini Flash Planning):** Model switch is planned and documented; completion requires runtime verification.
+- **Current Standing:** Ready to proceed to **Phase 4: Medical Report** once model integration is verified.
 - **Pending Phases:**
   - Phase 4: Medical Report (Organize report sections, show missing/uncertain info, inline patient corrections, printable/downloadable summary).
   - Phase 5: Security and Testing (File upload limits, keyboard/contrast audit).
