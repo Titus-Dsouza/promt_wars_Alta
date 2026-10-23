@@ -1,9 +1,9 @@
 # MediScribe — Implementation Phases
 
 ## Phase 1: Setup (9:30–9:50 AM)
-- [ ] Inspect the existing project and files.
-- [ ] Set up dependencies and project structure.
-- [ ] Configure Gemini API securely using environment variables.
+- [x] Inspect the existing project and files.
+- [x] Set up dependencies and project structure.
+- [x] Configure Gemini API securely using environment variables.
 
 **Done when:** The application runs and the configuration is ready.
 
