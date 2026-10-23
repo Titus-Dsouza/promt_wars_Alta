@@ -1,25 +1,25 @@
 # MediScribe — Implementation Phases
 
 ## Phase 1: Setup (9:30–9:50 AM)
-- [x] Inspect the existing project and files.
-- [x] Set up dependencies and project structure.
-- [x] Configure Gemini API securely using environment variables.
+- [ ] Inspect the existing project and files.
+- [ ] Set up dependencies and project structure.
+- [ ] Configure Gemini API securely using environment variables.
 
 **Done when:** The application runs and the configuration is ready.
 
 ## Phase 2: Build the UI (9:50–10:35 AM)
-- [x] Create a clean, modern, responsive interface.
-- [x] Add patient intake forms and multiple-choice symptom questions.
-- [x] Add a free-text field for describing medical concerns.
-- [x] Add loading, error, and success states.
+- [ ] Create a clean, modern, responsive interface.
+- [ ] Add patient intake forms and multiple-choice symptom questions.
+- [ ] Add a free-text field for describing medical concerns.
+- [ ] Add loading, error, and success states.
 
 **Done when:** The patient can complete the intake form on desktop and mobile.
 
 ## Phase 3: Gemini Integration (10:35–11:25 AM)
-- [x] Connect Gemini through a secure backend.
-- [x] Process patient answers and medical-history text.
-- [x] Generate relevant follow-up questions.
-- [x] Validate Gemini responses and handle API failures.
+- [ ] Connect Gemini through a secure backend.
+- [ ] Process patient answers and medical-history text.
+- [ ] Generate relevant follow-up questions.
+- [ ] Validate Gemini responses and handle API failures.
 
 **Done when:** Gemini converts patient input into structured information.
 

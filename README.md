@@ -2,24 +2,21 @@
 
 ### From patient information to doctor-ready reports.
 
-MediScribe is a Gemini-powered patient intake application that transforms unstructured medical information into clear, organised reports for doctors to review.
+MediScribe is an AI-powered patient intake application that transforms symptoms and medical history into clear, structured reports for doctors to review.
 
-Patients can describe their symptoms, answer simple multiple-choice questions, and provide their existing medical history. Gemini helps organise the information, identify missing details, and generate a structured summary that patients can review before sharing it with a healthcare professional.
+Using **Google Gemma 4**, MediScribe aims to organise patient responses, ask relevant follow-up questions, and highlight missing or uncertain information before generating a medical summary.
 
 ### ✨ Key Features
-- 📝 **Smart Patient Intake:** Simple forms and symptom-based questions.
-- 🤖 **Gemini AI Integration:** Understands patient input and asks relevant follow-up questions.
-- 📋 **Structured Medical Reports:** Organises symptoms, medications, allergies, and medical history.
-- ✅ **Patient Review:** Allows users to review and correct information before generating a report.
-- 📄 **Doctor-Ready Summary:** Creates a report that can be printed or shared with a doctor.
+- 📝 **Smart Patient Intake:** Simple forms and multiple-choice symptom questions.
+- 🤖 **AI Assistance:** Gemma 4 helps organise medical information.
+- 📋 **Structured Reports:** Summarises symptoms, medications, allergies, and medical history.
+- ✅ **Patient Review:** Allows patients to review and correct information.
+- 📄 **Doctor-Ready Summary:** Reports can be printed or shared with a healthcare professional.
 
 ### 🎯 Our Goal
-To bridge the gap between patients and healthcare professionals by making medical information easier to understand, organise, and communicate.
+To bridge the gap between patients and healthcare professionals through better-organised medical information.
 
-### 🛡️ Safety First
-MediScribe supports medical documentation, not diagnosis. It does not replace professional medical advice, and all reports should be reviewed by a qualified healthcare professional.
+### 🛡️ Safety
+MediScribe does not diagnose diseases or prescribe treatments. Reports are intended for review by a qualified healthcare professional.
 
-### 🌐 Powered By
-Google Gemini AI
-
-**MediScribe — Better organised information for better doctor-patient conversations.**
+**MediScribe — Better organised information, better conversations.**
