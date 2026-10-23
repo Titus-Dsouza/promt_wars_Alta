@@ -364,26 +364,123 @@
     <!-- Loading State Screen -->
     <div id="loading-overlay" class="loading-overlay" aria-live="assertive" role="status">
       <div class="spinner" aria-hidden="true"></div>
-      <h3>Organising your health story...</h3>
-      <p>Structuring your symptoms, history, and timeline for your healthcare provider with Google Gemma 4.</p>
+      <h3 id="loading-title">Organising your health story with Google Gemma 4...</h3>
+      <p id="loading-desc">Extracting clinical details, structuring timeline, and checking for missing information with Gemma 4.</p>
     </div>
 
-    <!-- Success / Phase 2 Validated State -->
-    <div id="success-step" class="wizard-step" aria-labelledby="success-title">
-      <div class="step-heading" style="text-align: center; padding: 20px 0;">
-        <span style="font-size: 40px; display: block; margin-bottom: 12px;" aria-hidden="true">✅</span>
-        <h2 id="success-title">Intake Validated Successfully</h2>
-        <p id="success-summary-text" style="max-width: 500px; margin: 12px auto 24px;">Your clinical intake data has been verified and recorded.</p>
-
-        <div class="safety-notice" style="text-align: left; margin: 20px auto; max-width: 520px;">
-          <span class="safety-icon" aria-hidden="true">ℹ️</span>
-          <div class="safety-text">
-            <h4>Phase 2 UI Complete</h4>
-            <p>The patient intake interface, multiple-choice questions, validation engine, and responsive controls are ready for Phase 3 Gemma 4 AI processing.</p>
-          </div>
+    <!-- Phase 3: AI Results Screen (Google Gemma 4 Output) -->
+    <div id="ai-results-step" class="wizard-step" aria-labelledby="ai-results-title">
+      <div class="step-heading">
+        <div class="ai-header-badge">
+          <span aria-hidden="true">🤖</span>
+          <span>Google Gemma 4 AI &bull; Clinical Extraction</span>
         </div>
+        <h2 id="ai-results-title">Structured Medical Intake Summary</h2>
+        <p>Gemma 4 has organised your symptoms and history into clinical documentation for your doctor.</p>
+      </div>
 
-        <button type="button" id="edit-intake-btn" class="btn btn-secondary" style="margin-top: 16px;">
+      <!-- Chief Complaint -->
+      <div class="chief-complaint-box">
+        <h4>Chief Complaint</h4>
+        <p id="ai-chief-complaint">Loading chief complaint...</p>
+      </div>
+
+      <!-- Structured Symptoms -->
+      <div class="review-card">
+        <div class="review-label">Structured Symptoms &amp; Details</div>
+        <div id="ai-structured-symptoms" class="symptom-structured-list">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Clinical Timeline -->
+      <div class="review-card">
+        <div class="review-label">Onset &amp; Timeline</div>
+        <p id="ai-timeline" class="review-value">Loading timeline...</p>
+      </div>
+
+      <!-- Medical History & Background -->
+      <div class="review-card">
+        <div class="review-label">Clinical Background &amp; Allergies</div>
+        <div class="review-section">
+          <div class="review-label">Chronic Conditions</div>
+          <div id="ai-conditions" class="review-tag-list">None reported</div>
+        </div>
+        <div class="review-section">
+          <div class="review-label">Current Medications</div>
+          <p id="ai-medications" class="review-value">None reported</p>
+        </div>
+        <div class="review-section">
+          <div class="review-label">Allergies</div>
+          <p id="ai-allergies" class="review-value">No known drug allergies</p>
+        </div>
+      </div>
+
+      <!-- Targeted Follow-up Questions (Only when information is missing) -->
+      <div id="ai-followup-container" class="followup-card" style="display: none;">
+        <div class="followup-card-header">
+          <span class="followup-icon" aria-hidden="true">❓</span>
+          <span class="followup-title">Recommended Clarifying Questions for Your Consultation</span>
+        </div>
+        <p style="font-size: 13px; color: var(--secondary); margin-bottom: 12px;">
+          Gemma 4 identified areas where additional clinical detail will assist your healthcare provider:
+        </p>
+        <ul id="ai-followup-list" class="followup-list">
+          <!-- Populated dynamically -->
+        </ul>
+      </div>
+
+      <!-- Clinical Safety Notice -->
+      <div class="safety-notice" style="margin-top: 24px;">
+        <span class="safety-icon" aria-hidden="true">🛡️</span>
+        <div class="safety-text">
+          <h4>Clinical Safety Disclaimer</h4>
+          <p id="ai-safety-notice">MediScribe supports medical documentation, not diagnosis. It does not replace professional medical advice, and all summaries should be reviewed by a qualified healthcare professional.</p>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 24px;">
+        <button type="button" id="ai-edit-btn" class="btn btn-secondary">
+          &larr; Revise Intake Responses
+        </button>
+      </div>
+    </div>
+
+    <!-- Phase 3: AI Blocker Screen (When GEMINI_API_KEY is not set) -->
+    <div id="ai-blocker-step" class="wizard-step" aria-labelledby="blocker-title">
+      <div class="blocker-card">
+        <div class="blocker-header">
+          <span class="blocker-icon" aria-hidden="true">⚠️</span>
+          <h3 id="blocker-title" class="blocker-title">API Key Required for Live AI Processing</h3>
+        </div>
+        <p class="blocker-body">
+          Your patient intake data has been <strong>successfully validated and recorded locally</strong>.
+          However, real-time clinical extraction using <strong>Google Gemma 4</strong> requires an active Gemini API key.
+        </p>
+        <div class="blocker-hint">
+          Configure <strong>GEMINI_API_KEY</strong> in your <code>.env</code> file or environment variables to enable live Gemma 4 processing.
+        </div>
+      </div>
+
+      <!-- Validated Local Data Summary -->
+      <div class="review-card">
+        <div class="review-label">Validated Patient Intake Record</div>
+        <div class="review-section">
+          <div class="review-label">Reported Symptoms</div>
+          <div id="blocker-symptoms" class="review-tag-list"></div>
+        </div>
+        <div class="review-section">
+          <div class="review-label">Duration &amp; Severity</div>
+          <p id="blocker-duration-severity" class="review-value"></p>
+        </div>
+        <div class="review-section">
+          <div class="review-label">Symptom Description</div>
+          <p id="blocker-description" class="review-value"></p>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 20px;">
+        <button type="button" id="blocker-edit-btn" class="btn btn-secondary">
           &larr; Edit Intake Responses
         </button>
       </div>

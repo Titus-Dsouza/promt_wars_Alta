@@ -719,3 +719,178 @@ body {
     flex: 1 1 calc(20% - 8px);
   }
 }
+
+
+/* Phase 3: Gemma 4 AI Results & Follow-Up Styling */
+.ai-results-wrapper {
+  margin-top: 10px;
+}
+
+.ai-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(4, 2, 29, 0.06);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  margin-bottom: 16px;
+}
+
+.chief-complaint-box {
+  background: #FFFFFF;
+  border: 1.5px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: var(--radius-sm);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+.chief-complaint-box h4 {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--secondary);
+  margin-bottom: 4px;
+}
+
+.chief-complaint-box p {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.symptom-structured-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.symptom-structured-item {
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.symptom-main-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.symptom-name {
+  font-weight: 600;
+  color: var(--primary);
+  font-size: 15px;
+}
+
+.symptom-meta {
+  font-size: 13px;
+  color: var(--secondary);
+}
+
+.followup-card {
+  background: #FCF9FA;
+  border: 1.5px solid #EADBDF;
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.followup-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.followup-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.followup-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.followup-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.followup-item {
+  background: #FFFFFF;
+  border: 1px solid #EADBDF;
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--primary);
+  line-height: 1.4;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.followup-num {
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.blocker-card {
+  background: #FFFDF9;
+  border: 1.5px solid #F0DEB4;
+  border-radius: var(--radius-md);
+  padding: 24px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.blocker-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.blocker-icon {
+  font-size: 24px;
+}
+
+.blocker-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--warning);
+}
+
+.blocker-body {
+  font-size: 14px;
+  color: var(--primary);
+  line-height: 1.5;
+}
+
+.blocker-hint {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--secondary);
+  background: #F7F5EE;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-family: monospace;
+}

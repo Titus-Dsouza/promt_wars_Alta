@@ -1,5 +1,5 @@
 /**
- * MediScribe — Patient Intake Interactive Engine (Phase 2)
+ * MediScribe — Patient Intake & Gemma 4 AI Processing Engine (Phase 3)
  * Pure vanilla JavaScript with accessibility, keyboard navigation, and responsive validation.
  */
 
@@ -18,7 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const alertMessage = document.getElementById('alert-message');
   const loadingOverlay = document.getElementById('loading-overlay');
   const wizardFooter = document.getElementById('wizard-footer');
-  const intakeForm = document.getElementById('intake-form');
+  const aiResultsStep = document.getElementById('ai-results-step');
+  const aiBlockerStep = document.getElementById('ai-blocker-step');
+  const aiEditBtn = document.getElementById('ai-edit-btn');
+  const blockerEditBtn = document.getElementById('blocker-edit-btn');
 
   // Step elements
   const steps = [
@@ -52,12 +55,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // Navigation: Show Step
   function showStep(index) {
     hideAlert();
+    if (aiResultsStep) aiResultsStep.classList.remove('active');
+    if (aiBlockerStep) aiBlockerStep.classList.remove('active');
+
     steps.forEach((step, idx) => {
       if (step) {
         step.classList.toggle('active', idx === index);
       }
     });
 
+    wizardFooter.style.display = 'flex';
     currentStep = index;
     const progressPercent = ((index + 1) / steps.length) * 100;
     progressFill.style.width = `${progressPercent}%`;
@@ -73,20 +80,20 @@ document.addEventListener('DOMContentLoaded', () => {
       backBtn.disabled = false;
       backBtn.style.visibility = 'visible';
       if (index === steps.length - 1) {
-        nextBtn.textContent = 'Confirm & Validate Intake';
+        nextBtn.textContent = 'Process with Google Gemma 4';
         populateReviewSummary();
       } else {
         nextBtn.textContent = 'Continue';
       }
     }
 
-    // Scroll to top of container
     intakeContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   // Switch to Intake View
   function openIntakeWizard() {
     landingSection.style.display = 'none';
+    intakeContainer.style.display = 'block';
     intakeContainer.classList.add('active');
     showStep(0);
   }
@@ -185,7 +192,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     card.addEventListener('click', (e) => {
-      // Avoid double trigger if clicking directly on input
       if (e.target.tagName !== 'INPUT') {
         toggleCard();
       } else {
@@ -238,7 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Populate Review Summary (Step 4)
   function populateReviewSummary() {
-    // Selected symptoms
     const symptoms = [];
     document.querySelectorAll('#step-1 input[type="checkbox"]:checked').forEach(cb => {
       symptoms.push(cb.value);
@@ -261,7 +266,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Duration & Severity
     const durationInput = document.querySelector('input[name="duration"]:checked');
     const reviewDuration = document.getElementById('review-duration');
     if (reviewDuration) {
@@ -273,14 +277,12 @@ document.addEventListener('DOMContentLoaded', () => {
       reviewSeverity.textContent = `${severityValue} / 10`;
     }
 
-    // Description
     const desc = document.getElementById('symptom-description')?.value.trim();
     const reviewDesc = document.getElementById('review-description');
     if (reviewDesc) {
       reviewDesc.textContent = desc || 'None provided';
     }
 
-    // History
     const conditions = [];
     document.querySelectorAll('#step-3 input[type="checkbox"]:checked').forEach(cb => {
       conditions.push(cb.value);
@@ -300,7 +302,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Meds & Allergies
     const meds = document.getElementById('current-medications')?.value.trim();
     const allergies = document.getElementById('known-allergies')?.value.trim();
     const reviewMeds = document.getElementById('review-meds');
@@ -364,18 +365,19 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // Submit Intake Data to Phase 2 Validation Endpoint
+  // Submit Intake Data & Process with Gemma 4 (Phase 3)
   async function submitIntake() {
     hideAlert();
     const payload = getIntakeData();
 
     // Show loading state
-    steps.forEach(s => s.classList.remove('active'));
+    steps.forEach(s => s && s.classList.remove('active'));
     wizardFooter.style.display = 'none';
     loadingOverlay.classList.add('active');
 
     try {
-      const response = await fetch('/api/validate/', {
+      // Step 1: Validate payload
+      const valResponse = await fetch('/api/validate/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -384,35 +386,183 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify(payload),
       });
 
-      const result = await response.json();
+      const valResult = await valResponse.json();
+      if (!valResponse.ok || valResult.status !== 'validated') {
+        throw new Error(valResult.error || 'Intake validation failed. Please review your entries.');
+      }
 
-      if (response.ok && result.status === 'validated') {
-        // Success state
-        loadingOverlay.classList.remove('active');
-        const successStep = document.getElementById('success-step');
-        if (successStep) {
-          successStep.classList.add('active');
-          document.getElementById('success-summary-text').textContent =
-            `Patient intake with ${payload.symptoms.length} symptom(s) recorded, validated, and ready for Phase 3 Gemma 4 AI processing.`;
-        }
+      // Step 2: Process with Gemma 4 backend
+      const aiResponse = await fetch('/api/process/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify(valResult.intake),
+      });
+
+      const aiResult = await aiResponse.json();
+      loadingOverlay.classList.remove('active');
+
+      if (aiResult.status === 'success' && aiResult.data) {
+        // Display AI Structured Output
+        renderAIResults(aiResult.data);
+      } else if (aiResult.status === 'blocked') {
+        // Display Blocker Notification (No API Key)
+        renderAIBlocker(valResult.intake, aiResult.error);
       } else {
-        throw new Error(result.error || 'Validation failed. Please review your intake.');
+        throw new Error(aiResult.error || 'Failed to process intake with Gemma 4.');
       }
     } catch (err) {
       loadingOverlay.classList.remove('active');
       wizardFooter.style.display = 'flex';
       showStep(steps.length - 1);
-      showAlert(err.message || 'An error occurred while validating intake. Please try again.');
+      showAlert(err.message || 'An error occurred during intake processing. Please try again.');
     }
   }
 
-  // Edit / Reset Button from Success Screen
-  const editIntakeBtn = document.getElementById('edit-intake-btn');
-  if (editIntakeBtn) {
-    editIntakeBtn.addEventListener('click', () => {
-      const successStep = document.getElementById('success-step');
-      if (successStep) successStep.classList.remove('active');
-      wizardFooter.style.display = 'flex';
+  // Render Gemma 4 Structured Results
+  function renderAIResults(data) {
+    if (!aiResultsStep) return;
+
+    // Chief Complaint
+    const cc = document.getElementById('ai-chief-complaint');
+    if (cc) cc.textContent = data.chief_complaint || 'Patient reported concern';
+
+    // Symptoms
+    const symContainer = document.getElementById('ai-structured-symptoms');
+    if (symContainer) {
+      symContainer.innerHTML = '';
+      const symptoms = data.structured_symptoms || [];
+      if (symptoms.length > 0) {
+        symptoms.forEach(s => {
+          const item = document.createElement('div');
+          item.className = 'symptom-structured-item';
+          item.innerHTML = `
+            <div class="symptom-main-info">
+              <span class="symptom-name">${escapeHTML(s.symptom || 'Symptom')}</span>
+              <span class="symptom-meta">&bull; ${escapeHTML(s.reported_duration || 'Duration not specified')} &bull; Severity: ${escapeHTML(String(s.severity_score || 'Not rated'))}</span>
+            </div>
+            ${s.details ? `<div style="font-size: 13px; color: var(--secondary); width: 100%; margin-top: 4px;">${escapeHTML(s.details)}</div>` : ''}
+          `;
+          symContainer.appendChild(item);
+        });
+      } else {
+        symContainer.textContent = 'No structured symptoms extracted.';
+      }
+    }
+
+    // Timeline
+    const timeline = document.getElementById('ai-timeline');
+    if (timeline) timeline.textContent = data.timeline || 'Timeline not specified';
+
+    // Medical History
+    const conditionsEl = document.getElementById('ai-conditions');
+    if (conditionsEl) {
+      conditionsEl.innerHTML = '';
+      const conds = data.medical_history?.chronic_conditions || [];
+      if (conds.length > 0) {
+        conds.forEach(c => {
+          const span = document.createElement('span');
+          span.className = 'review-tag';
+          span.textContent = c;
+          conditionsEl.appendChild(span);
+        });
+      } else {
+        conditionsEl.textContent = 'None reported';
+      }
+    }
+
+    // Medications & Allergies
+    const medsEl = document.getElementById('ai-medications');
+    if (medsEl) {
+      const meds = data.medical_history?.current_medications;
+      medsEl.textContent = Array.isArray(meds) ? (meds.join(', ') || 'None reported') : (meds || 'None reported');
+    }
+
+    const allergiesEl = document.getElementById('ai-allergies');
+    if (allergiesEl) {
+      const allergies = data.medical_history?.known_allergies;
+      allergiesEl.textContent = Array.isArray(allergies) ? (allergies.join(', ') || 'No known drug allergies') : (allergies || 'No known drug allergies');
+    }
+
+    // Follow-up Questions (Only displayed when Gemma 4 identified missing info)
+    const followupContainer = document.getElementById('ai-followup-container');
+    const followupList = document.getElementById('ai-followup-list');
+    const questions = data.follow_up_questions || [];
+
+    if (followupContainer && followupList) {
+      if (questions.length > 0) {
+        followupList.innerHTML = '';
+        questions.forEach((q, idx) => {
+          const li = document.createElement('li');
+          li.className = 'followup-item';
+          li.innerHTML = `<span class="followup-num">Q${idx + 1}</span> <span>${escapeHTML(q)}</span>`;
+          followupList.appendChild(li);
+        });
+        followupContainer.style.display = 'block';
+      } else {
+        followupContainer.style.display = 'none';
+      }
+    }
+
+    // Safety disclaimer
+    const safetyEl = document.getElementById('ai-safety-notice');
+    if (safetyEl && data.clinical_safety_notice) {
+      safetyEl.textContent = data.clinical_safety_notice;
+    }
+
+    aiResultsStep.classList.add('active');
+    aiResultsStep.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // Render AI Blocker Screen (When GEMINI_API_KEY is missing)
+  function renderAIBlocker(intake, errorMsg) {
+    if (!aiBlockerStep) return;
+
+    const symContainer = document.getElementById('blocker-symptoms');
+    if (symContainer) {
+      symContainer.innerHTML = '';
+      (intake.symptoms || []).forEach(s => {
+        const span = document.createElement('span');
+        span.className = 'review-tag';
+        span.textContent = s;
+        symContainer.appendChild(span);
+      });
+    }
+
+    const durSev = document.getElementById('blocker-duration-severity');
+    if (durSev) {
+      durSev.textContent = `${(intake.duration || '').replace('_', ' ')} • Severity: ${intake.severity}/10`;
+    }
+
+    const desc = document.getElementById('blocker-description');
+    if (desc) desc.textContent = intake.description || 'None provided';
+
+    aiBlockerStep.classList.add('active');
+    aiBlockerStep.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function escapeHTML(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // Edit / Return to Intake buttons
+  if (aiEditBtn) {
+    aiEditBtn.addEventListener('click', () => {
+      aiResultsStep.classList.remove('active');
+      showStep(0);
+    });
+  }
+
+  if (blockerEditBtn) {
+    blockerEditBtn.addEventListener('click', () => {
+      aiBlockerStep.classList.remove('active');
       showStep(0);
     });
   }

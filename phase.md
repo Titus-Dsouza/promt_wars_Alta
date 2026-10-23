@@ -16,10 +16,10 @@
 **Done when:** The patient can complete the intake form on desktop and mobile.
 
 ## Phase 3: Gemini Integration (10:35–11:25 AM)
-- [ ] Connect Gemini through a secure backend.
-- [ ] Process patient answers and medical-history text.
-- [ ] Generate relevant follow-up questions.
-- [ ] Validate Gemini responses and handle API failures.
+- [x] Connect Gemini through a secure backend.
+- [x] Process patient answers and medical-history text.
+- [x] Generate relevant follow-up questions.
+- [x] Validate Gemini responses and handle API failures.
 
 **Done when:** Gemini converts patient input into structured information.
 

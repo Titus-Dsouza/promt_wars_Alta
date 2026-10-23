@@ -1,10 +1,10 @@
 import json
 import logging
 from django.shortcuts import render
-from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
-from .gemma_service import get_gemma_status
+from .gemma_service import get_gemma_status, process_patient_intake
 
 logger = logging.getLogger(__name__)
 
@@ -18,13 +18,13 @@ ALLOWED_DURATIONS = {
 
 def intake_view(request):
     """
-    Renders the primary patient intake interface (Phase 2 UI).
+    Renders the primary patient intake interface.
     Supports desktop and mobile responsive layout, multiple-choice questions,
-    free-text symptoms, and interactive progress states.
+    free-text symptoms, interactive progress states, and Gemma 4 AI processing.
     """
     context = {
         'model_name': getattr(settings, 'GEMMA_MODEL', 'gemma-4-31b-it'),
-        'phase': 2,
+        'phase': 3,
     }
     return render(request, 'intake/intake.html', context)
 
@@ -33,7 +33,7 @@ def intake_view(request):
 def validate_intake_view(request):
     """
     Validates patient intake submission payload without triggering AI processing.
-    Phase 2: Confirms form data validity and returns structured intake state.
+    Confirms form data validity and returns structured intake state.
     """
     if request.method != 'POST':
         return JsonResponse({
@@ -93,10 +93,44 @@ def validate_intake_view(request):
 
     return JsonResponse({
         'status': 'validated',
-        'phase': 2,
-        'message': 'Intake form validated successfully. Ready for Phase 3 Gemma 4 processing.',
+        'phase': 3,
+        'message': 'Intake form validated successfully. Ready for Gemma 4 AI processing.',
         'intake': cleaned,
     })
+
+
+@csrf_exempt
+def process_intake_view(request):
+    """
+    Phase 3: Processes validated patient intake data using Google Gemma 4.
+    Extracts structured clinical documentation and identifies missing information.
+    """
+    if request.method != 'POST':
+        return JsonResponse({
+            'status': 'error',
+            'error': 'Only POST method is allowed.',
+        }, status=400)
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        return JsonResponse({
+            'status': 'error',
+            'error': 'Invalid JSON request payload.',
+        }, status=400)
+
+    symptoms = data.get('symptoms', [])
+    description = data.get('description', '')
+    if not symptoms and not description:
+        return JsonResponse({
+            'status': 'error',
+            'error': 'Intake data must include symptoms or a description to process.',
+        }, status=400)
+
+    result = process_patient_intake(data)
+    http_status = 200 if result.get('status') in ('success', 'blocked') else 500
+
+    return JsonResponse(result, status=http_status)
 
 
 def status_view(request):
@@ -108,8 +142,8 @@ def status_view(request):
     if request.headers.get('Accept') == 'application/json' or request.GET.get('format') == 'json':
         return JsonResponse({
             'project': 'MediScribe',
-            'phase': 2,
-            'phase_name': 'Patient Intake UI',
+            'phase': 3,
+            'phase_name': 'Gemma 4 AI Integration',
             'status': 'ready',
             'debug': settings.DEBUG,
             'gemma': status_data,
@@ -117,7 +151,7 @@ def status_view(request):
 
     return JsonResponse({
         'status': 'operational',
-        'phase': 2,
+        'phase': 3,
         'gemma': status_data,
     })
 
@@ -126,6 +160,6 @@ def health_check(request):
     """Simple JSON health check endpoint."""
     return JsonResponse({
         'status': 'healthy',
-        'phase': 2,
+        'phase': 3,
         'gemma': get_gemma_status(),
     })
