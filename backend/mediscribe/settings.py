@@ -30,8 +30,12 @@ if not SECRET_KEY:
 _allowed_hosts_str = os.getenv('ALLOWED_HOSTS', '').strip()
 if _allowed_hosts_str:
     ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts_str.split(',') if h.strip()]
+    if '.vercel.app' not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append('.vercel.app')
+    if '*' not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append('*')
 else:
-    ALLOWED_HOSTS = ['*', '.vercel.app', 'localhost', '127.0.0.1', '[::1]']
+    ALLOWED_HOSTS = ['*', '.vercel.app', 'localhost', '127.0.0.1', '[::1]', 'testserver']
 
 # Application definition
 INSTALLED_APPS = [
