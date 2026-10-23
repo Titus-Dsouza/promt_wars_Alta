@@ -6,7 +6,7 @@ MediScribe transforms patient symptoms and medical history into structured repor
 ## 2. Tech Stack
 - **Frontend:** HTML, CSS, JavaScript
 - **Backend:** Python with Django
-- **AI:** Google Gemma 4 via the Gemini API
+- **AI:** Google Gemini Flash via the Gemini API
 - **Reports:** Printable and downloadable medical summaries
 
 ## 3. Workflow
