@@ -8,10 +8,10 @@
 **Done when:** The application runs and the configuration is ready.
 
 ## Phase 2: Build the UI (9:50–10:35 AM)
-- [ ] Create a clean, modern, responsive interface.
-- [ ] Add patient intake forms and multiple-choice symptom questions.
-- [ ] Add a free-text field for describing medical concerns.
-- [ ] Add loading, error, and success states.
+- [x] Create a clean, modern, responsive interface.
+- [x] Add patient intake forms and multiple-choice symptom questions.
+- [x] Add a free-text field for describing medical concerns.
+- [x] Add loading, error, and success states.
 
 **Done when:** The patient can complete the intake form on desktop and mobile.
 

@@ -1,0 +1,403 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Landing Page Section -->
+<section id="landing-section" class="landing-hero" aria-labelledby="hero-title">
+  <span class="landing-badge">Phase 2 — Clinical Intake UI</span>
+  <h1 id="hero-title">Your health story, clearly organised.</h1>
+  <p>MediScribe transforms your symptoms, medications, and medical history into clear, structured summaries ready for your doctor to review.</p>
+
+  <div class="hero-actions">
+    <button type="button" id="start-intake-btn" class="btn btn-primary" aria-label="Start Patient Intake Wizard">
+      Start Patient Intake &rarr;
+    </button>
+    <button type="button" id="try-demo-btn" class="btn btn-secondary" aria-label="Try Intake with Sample Clinical Data">
+      Try Demo (Pre-fill)
+    </button>
+  </div>
+
+  <!-- Three-Step Visual Guide -->
+  <div class="how-it-works-grid" aria-label="How MediScribe Works">
+    <div class="step-card">
+      <div class="step-number" aria-hidden="true">1</div>
+      <h3>Share Information</h3>
+      <p>Answer intuitive questions and describe what you are experiencing in your own words.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number" aria-hidden="true">2</div>
+      <h3>AI Organises It</h3>
+      <p>Google Gemma 4 extracts symptoms, timelines, and details into structured clinical data.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number" aria-hidden="true">3</div>
+      <h3>Review Your Report</h3>
+      <p>Review, correct, and download a doctor-ready clinical report before your appointment.</p>
+    </div>
+  </div>
+
+  <!-- Medical Safety & Privacy Notice -->
+  <div class="safety-notice" role="note" aria-label="Medical Documentation Disclaimer">
+    <span class="safety-icon" aria-hidden="true">🛡️</span>
+    <div class="safety-text">
+      <h4>Safety First</h4>
+      <p>MediScribe supports medical documentation, not diagnosis. It does not replace professional medical advice, and all summaries should be reviewed by a qualified healthcare professional.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Patient Intake Wizard Container -->
+<section id="intake-container" class="intake-container" aria-label="Patient Intake Form" style="display: none;">
+  <!-- Wizard Progress Header -->
+  <div class="intake-progress-header">
+    <div class="progress-info">
+      <span id="progress-label" class="progress-label">Step 1: Primary Symptoms</span>
+      <span id="progress-count" class="progress-count">Step 1 of 4</span>
+    </div>
+    <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="25" aria-label="Intake completion progress">
+      <div id="progress-fill" class="progress-fill" style="width: 25%;"></div>
+    </div>
+  </div>
+
+  <form id="intake-form" onsubmit="return false;" novalidate>
+    <!-- Accessible Error & Alert Notification Banner -->
+    <div style="padding: 0 32px; padding-top: 20px;">
+      <div id="intake-alert" class="alert alert-error" role="alert" aria-live="polite">
+        <span class="alert-icon" aria-hidden="true">⚠️</span>
+        <span id="alert-message">Please correct the highlighted field to continue.</span>
+      </div>
+    </div>
+
+    <!-- Step 1: Chief Complaints & Symptoms -->
+    <div id="step-1" class="wizard-step active" aria-labelledby="step-1-title">
+      <div class="step-heading">
+        <h2 id="step-1-title">What symptoms are you experiencing?</h2>
+        <p>Select all symptoms that apply to your current visit. You can add more details on the next screen.</p>
+      </div>
+
+      <div class="choice-grid" role="group" aria-label="Primary symptom options">
+        <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Persistent Cough">
+          <input type="checkbox" name="symptoms" value="Persistent Cough" id="sym-cough">
+          <div class="choice-indicator" aria-hidden="true">
+            <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+          </div>
+          <div class="choice-content">
+            <span class="choice-title">Persistent Cough</span>
+            <span class="choice-desc">Dry, productive, or wheezing</span>
+          </div>
+        </div>
+
+        <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Fever or Chills">
+          <input type="checkbox" name="symptoms" value="Fever or Chills" id="sym-fever">
+          <div class="choice-indicator" aria-hidden="true">
+            <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+          </div>
+          <div class="choice-content">
+            <span class="choice-title">Fever or Chills</span>
+            <span class="choice-desc">Elevated body temperature, sweating</span>
+          </div>
+        </div>
+
+        <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Shortness of Breath">
+          <input type="checkbox" name="symptoms" value="Shortness of Breath" id="sym-sob">
+          <div class="choice-indicator" aria-hidden="true">
+            <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+          </div>
+          <div class="choice-content">
+            <span class="choice-title">Shortness of Breath</span>
+            <span class="choice-desc">Difficulty breathing at rest or effort</span>
+          </div>
+        </div>
+
+        <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Headache or Migraine">
+          <input type="checkbox" name="symptoms" value="Headache or Migraine" id="sym-headache">
+          <div class="choice-indicator" aria-hidden="true">
+            <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+          </div>
+          <div class="choice-content">
+            <span class="choice-title">Headache</span>
+            <span class="choice-desc">Dull pressure, throbbing, or migraine</span>
+          </div>
+        </div>
+
+        <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Chest Discomfort">
+          <input type="checkbox" name="symptoms" value="Chest Discomfort" id="sym-chest">
+          <div class="choice-indicator" aria-hidden="true">
+            <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+          </div>
+          <div class="choice-content">
+            <span class="choice-title">Chest Discomfort</span>
+            <span class="choice-desc">Tightness, ache, or sharp pain</span>
+          </div>
+        </div>
+
+        <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Fatigue or Weakness">
+          <input type="checkbox" name="symptoms" value="Fatigue / Weakness" id="sym-fatigue">
+          <div class="choice-indicator" aria-hidden="true">
+            <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+          </div>
+          <div class="choice-content">
+            <span class="choice-title">Fatigue / Weakness</span>
+            <span class="choice-desc">Unusual exhaustion or low energy</span>
+          </div>
+        </div>
+
+        <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Abdominal Pain">
+          <input type="checkbox" name="symptoms" value="Abdominal Pain" id="sym-stomach">
+          <div class="choice-indicator" aria-hidden="true">
+            <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+          </div>
+          <div class="choice-content">
+            <span class="choice-title">Abdominal Pain</span>
+            <span class="choice-desc">Cramping, sharp pain, or bloating</span>
+          </div>
+        </div>
+
+        <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Joint or Muscle Pain">
+          <input type="checkbox" name="symptoms" value="Joint or Muscle Pain" id="sym-joints">
+          <div class="choice-indicator" aria-hidden="true">
+            <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+          </div>
+          <div class="choice-content">
+            <span class="choice-title">Joint or Muscle Pain</span>
+            <span class="choice-desc">Stiffness, soreness, or swelling</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="other-symptom" class="form-label">Other Symptom (Optional)</label>
+        <input type="text" id="other-symptom" name="other_symptom" class="form-input" placeholder="e.g. Skin rash, earache, dizziness" maxlength="150">
+        <p class="form-hint">Type any specific symptom not covered above.</p>
+      </div>
+    </div>
+
+    <!-- Step 2: Duration, Severity & Description -->
+    <div id="step-2" class="wizard-step" aria-labelledby="step-2-title">
+      <div class="step-heading">
+        <h2 id="step-2-title">Duration, Severity & Details</h2>
+        <p>Tell us how long you have felt this way and describe the symptoms in your own words.</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">How long have these symptoms lasted?</label>
+        <div id="duration-grid" class="choice-grid" role="radiogroup" aria-label="Symptom Duration Options">
+          <div class="choice-card" tabindex="0" role="radio" aria-checked="false" aria-label="Within 24 hours">
+            <input type="radio" name="duration" value="under_24_hours" id="dur-today">
+            <div class="choice-indicator radio" aria-hidden="true">
+              <svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="3.5"/></svg>
+            </div>
+            <div class="choice-content">
+              <span class="choice-title">Under 24 Hours</span>
+              <span class="choice-desc">Started today or last night</span>
+            </div>
+          </div>
+
+          <div class="choice-card" tabindex="0" role="radio" aria-checked="false" aria-label="2 to 3 days">
+            <input type="radio" name="duration" value="2-3_days" id="dur-days">
+            <div class="choice-indicator radio" aria-hidden="true">
+              <svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="3.5"/></svg>
+            </div>
+            <div class="choice-content">
+              <span class="choice-title">2 to 3 Days</span>
+              <span class="choice-desc">Developing over a few days</span>
+            </div>
+          </div>
+
+          <div class="choice-card" tabindex="0" role="radio" aria-checked="false" aria-label="1 to 2 weeks">
+            <input type="radio" name="duration" value="1-2_weeks" id="dur-weeks">
+            <div class="choice-indicator radio" aria-hidden="true">
+              <svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="3.5"/></svg>
+            </div>
+            <div class="choice-content">
+              <span class="choice-title">1 to 2 Weeks</span>
+              <span class="choice-desc">Persistent over past weeks</span>
+            </div>
+          </div>
+
+          <div class="choice-card" tabindex="0" role="radio" aria-checked="false" aria-label="Over a month">
+            <input type="radio" name="duration" value="over_a_month" id="dur-month">
+            <div class="choice-indicator radio" aria-hidden="true">
+              <svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="3.5"/></svg>
+            </div>
+            <div class="choice-content">
+              <span class="choice-title">Over a Month</span>
+              <span class="choice-desc">Chronic or recurring concern</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" id="severity-label">Symptom Severity / Discomfort (1 = Mild, 10 = Severe)</label>
+        <div class="severity-scale" role="group" aria-labelledby="severity-label">
+          <button type="button" class="severity-btn" data-val="1" aria-label="Severity 1 Mild">1</button>
+          <button type="button" class="severity-btn" data-val="2" aria-label="Severity 2">2</button>
+          <button type="button" class="severity-btn" data-val="3" aria-label="Severity 3">3</button>
+          <button type="button" class="severity-btn" data-val="4" aria-label="Severity 4">4</button>
+          <button type="button" class="severity-btn selected" data-val="5" aria-label="Severity 5 Moderate">5</button>
+          <button type="button" class="severity-btn" data-val="6" aria-label="Severity 6">6</button>
+          <button type="button" class="severity-btn" data-val="7" aria-label="Severity 7">7</button>
+          <button type="button" class="severity-btn" data-val="8" aria-label="Severity 8">8</button>
+          <button type="button" class="severity-btn" data-val="9" aria-label="Severity 9">9</button>
+          <button type="button" class="severity-btn" data-val="10" aria-label="Severity 10 Severe">10</button>
+        </div>
+        <input type="hidden" id="severity-input" name="severity" value="5">
+      </div>
+
+      <div class="form-group">
+        <label for="symptom-description" class="form-label">Describe your symptoms and concerns in detail</label>
+        <textarea id="symptom-description" name="description" class="form-textarea" placeholder="Describe when it happens, what makes it better or worse, and how it impacts your daily activities..." rows="5" required></textarea>
+        <p class="form-hint">Providing specific details helps Gemma 4 organise an accurate summary for your doctor.</p>
+      </div>
+    </div>
+
+    <!-- Step 3: Medical Background, Meds & Allergies -->
+    <div id="step-3" class="wizard-step" aria-labelledby="step-3-title">
+      <div class="step-heading">
+        <h2 id="step-3-title">Medical History, Medications & Allergies</h2>
+        <p>This context helps identify relevant interactions and informs your doctor's review.</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Existing Chronic Conditions (if any)</label>
+        <div class="choice-grid" role="group" aria-label="Existing conditions">
+          <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Asthma or Respiratory">
+            <input type="checkbox" name="conditions" value="Asthma / Respiratory" id="cond-asthma">
+            <div class="choice-indicator" aria-hidden="true">
+              <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+            </div>
+            <div class="choice-content">
+              <span class="choice-title">Asthma / Respiratory</span>
+            </div>
+          </div>
+
+          <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Hypertension">
+            <input type="checkbox" name="conditions" value="Hypertension (High BP)" id="cond-bp">
+            <div class="choice-indicator" aria-hidden="true">
+              <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+            </div>
+            <div class="choice-content">
+              <span class="choice-title">High Blood Pressure</span>
+            </div>
+          </div>
+
+          <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Diabetes">
+            <input type="checkbox" name="conditions" value="Diabetes" id="cond-diabetes">
+            <div class="choice-indicator" aria-hidden="true">
+              <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+            </div>
+            <div class="choice-content">
+              <span class="choice-title">Diabetes (Type 1 / 2)</span>
+            </div>
+          </div>
+
+          <div class="choice-card" tabindex="0" role="checkbox" aria-checked="false" aria-label="Heart Disease">
+            <input type="checkbox" name="conditions" value="Heart Disease" id="cond-heart">
+            <div class="choice-indicator" aria-hidden="true">
+              <svg viewBox="0 0 12 12"><polygon points="4.5,9.5 1,6 2.4,4.6 4.5,6.7 9.6,1.6 11,3"/></svg>
+            </div>
+            <div class="choice-content">
+              <span class="choice-title">Cardiovascular Condition</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="current-medications" class="form-label">Current Medications & Dosages</label>
+        <input type="text" id="current-medications" name="medications" class="form-input" placeholder="e.g. Lisinopril 10mg daily, Metformin 500mg, Vitamins" maxlength="200">
+        <p class="form-hint">List prescription drugs, over-the-counter remedies, or supplements.</p>
+      </div>
+
+      <div class="form-group">
+        <label for="known-allergies" class="form-label">Known Allergies (Medications, Foods, Environment)</label>
+        <input type="text" id="known-allergies" name="allergies" class="form-input" placeholder="e.g. Penicillin (anaphylaxis), Sulfa drugs, Latex, None" maxlength="200">
+        <p class="form-hint">Write 'None' if you do not have any known allergies.</p>
+      </div>
+
+      <div class="form-group">
+        <label for="additional-notes" class="form-label">Optional Lab Results or Medical Notes</label>
+        <textarea id="additional-notes" name="additional_notes" class="form-textarea" placeholder="Paste any relevant lab values, past surgical history, or recent clinic notes here..." rows="3"></textarea>
+      </div>
+    </div>
+
+    <!-- Step 4: Review Summary Before Validation -->
+    <div id="step-4" class="wizard-step" aria-labelledby="step-4-title">
+      <div class="step-heading">
+        <h2 id="step-4-title">Review Your Intake Summary</h2>
+        <p>Please confirm the information below before finalizing your intake submission.</p>
+      </div>
+
+      <div class="review-card" aria-label="Review of Entered Intake Information">
+        <div class="review-section">
+          <div class="review-label">Reported Symptoms</div>
+          <div id="review-symptoms" class="review-tag-list">Loading...</div>
+        </div>
+
+        <div class="review-section">
+          <div class="review-label">Duration & Severity</div>
+          <div class="review-value">
+            <span id="review-duration">Loading...</span> &bull; Severity: <span id="review-severity">5 / 10</span>
+          </div>
+        </div>
+
+        <div class="review-section">
+          <div class="review-label">Detailed Description</div>
+          <div id="review-description" class="review-value">Loading...</div>
+        </div>
+
+        <div class="review-section">
+          <div class="review-label">Medical Conditions</div>
+          <div id="review-conditions" class="review-tag-list">None reported</div>
+        </div>
+
+        <div class="review-section">
+          <div class="review-label">Medications & Allergies</div>
+          <div class="review-value">
+            <strong>Medications:</strong> <span id="review-meds">None</span><br>
+            <strong>Allergies:</strong> <span id="review-allergies">None</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State Screen -->
+    <div id="loading-overlay" class="loading-overlay" aria-live="assertive" role="status">
+      <div class="spinner" aria-hidden="true"></div>
+      <h3>Organising your health story...</h3>
+      <p>Structuring your symptoms, history, and timeline for your healthcare provider with Google Gemma 4.</p>
+    </div>
+
+    <!-- Success / Phase 2 Validated State -->
+    <div id="success-step" class="wizard-step" aria-labelledby="success-title">
+      <div class="step-heading" style="text-align: center; padding: 20px 0;">
+        <span style="font-size: 40px; display: block; margin-bottom: 12px;" aria-hidden="true">✅</span>
+        <h2 id="success-title">Intake Validated Successfully</h2>
+        <p id="success-summary-text" style="max-width: 500px; margin: 12px auto 24px;">Your clinical intake data has been verified and recorded.</p>
+
+        <div class="safety-notice" style="text-align: left; margin: 20px auto; max-width: 520px;">
+          <span class="safety-icon" aria-hidden="true">ℹ️</span>
+          <div class="safety-text">
+            <h4>Phase 2 UI Complete</h4>
+            <p>The patient intake interface, multiple-choice questions, validation engine, and responsive controls are ready for Phase 3 Gemma 4 AI processing.</p>
+          </div>
+        </div>
+
+        <button type="button" id="edit-intake-btn" class="btn btn-secondary" style="margin-top: 16px;">
+          &larr; Edit Intake Responses
+        </button>
+      </div>
+    </div>
+
+    <!-- Wizard Navigation Footer -->
+    <div id="wizard-footer" class="wizard-footer">
+      <button type="button" id="wizard-back-btn" class="btn btn-secondary" style="visibility: hidden;">
+        &larr; Back
+      </button>
+      <button type="button" id="wizard-next-btn" class="btn btn-primary">
+        Continue &rarr;
+      </button>
+    </div>
+  </form>
+</section>
+{% endblock %}
